@@ -1,0 +1,22 @@
+{
+    "name": "enoactic/laravel-google-drive",
+    "description": "",
+    "type": "library",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Boonyaphat Intasin",
+            "email": "aosmosiss-ze@hotmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "LaravelAppExtractor\\": "src/LaravelGoogleDrive"
+        }
+    },
+    "require": {
+        "php": ">=7.1.33",
+        "google/apiclient": "^2.0"
+    }
+}
