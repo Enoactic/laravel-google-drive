@@ -5,10 +5,13 @@ namespace LaravelGoogleDrive;
 use Exception;
 use Google_Client;
 use Google_Service_Drive;
+use Google_Service_Drive_DriveFile;
 
 class Drive
 {
-    public function client($applicationName, $redirectUri, $credentialPath, $tokenPath)
+    public $client;
+
+    public function __construct($applicationName, $redirectUri, $credentialPath, $tokenPath)
     {
         $client = new Google_Client();
 
@@ -56,6 +59,72 @@ class Drive
             }
             file_put_contents($tokenPath, json_encode($client->getAccessToken()));
         }
-        return $client;
+        $this->client = $client;
+    }
+
+    public function getItems($query = null)
+    {
+        $service = new Google_Service_Drive($this->client);
+
+        $parameters = array(
+            'q' => $query,
+            'fields' => 'id, name, webViewLink, webContentLink',
+        );
+
+        return $service->files->listFiles($parameters);
+    }
+
+    public function createFolder($folderName, $parentFolderId = null)
+    {
+        $duplicateFolder = $this->getItems("mimeType='application/vnd.google-apps.folder'
+            ".(($parentFolderId) ? " and '$parentFolderId' in parents ": "")."
+            and name='$folderName' 
+            and trashed=false
+        ");
+
+        if(count($duplicateFolder) == 0){
+            $service = new Google_Service_Drive($this->client);
+            $folder = new Google_Service_Drive_DriveFile();
+
+            $folder->setName($folderName);
+            $folder->setMimeType('application/vnd.google-apps.folder');
+            if(!empty($parentFolderId)){
+                $folder->setParents([$parentFolderId]);
+            }
+            $item = $service->files->create($folder);
+            $itemId = null;
+            if(isset($item['id']) && !empty($item['id'])){
+                $itemId = $item['id'];
+            }
+            return $itemId;
+        }
+
+        return $duplicateFolder[0]['id'];
+    }
+
+    public function createdFile( $filePath, $fileName, $parentFolderId = null)
+    {
+        $service = new Google_Service_Drive($this->client);
+        $file = new Google_Service_Drive_DriveFile();
+
+        $file->setName($fileName);
+
+        if(!empty($parentFolderId)){
+            $file->setParents([$parentFolderId]);
+        }
+
+        $item = $service->files->create(
+            $file,
+            array(
+                'data' => file_get_contents($filePath),
+                'mimeType' => 'application/octet-stream',
+            )
+        );
+
+        $itemId = null;
+        if(isset($item['id']) && !empty($item['id'])){
+            $itemId = $item['id'];
+        }
+        return $itemId;
     }
 }
