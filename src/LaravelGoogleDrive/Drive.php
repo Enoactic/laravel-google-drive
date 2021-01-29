@@ -6,6 +6,7 @@ use Exception;
 use Google_Client;
 use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
+use Google_Service_Drive_Permission;
 
 class Drive
 {
@@ -68,7 +69,7 @@ class Drive
 
         $parameters = array(
             'q' => $query,
-            'fields' => 'id, name, webViewLink, webContentLink',
+            'fields' => 'files(id, name, mimeType, webViewLink, webContentLink)',
         );
 
         return $service->files->listFiles($parameters);
@@ -124,6 +125,11 @@ class Drive
         $itemId = null;
         if(isset($item['id']) && !empty($item['id'])){
             $itemId = $item['id'];
+
+            $permission = new Google_Service_Drive_Permission();
+            $permission->setType('anyone');
+            $permission->setRole('reader');
+            $service->permissions->create($itemId, $permission);
         }
         return $itemId;
     }
