@@ -19,7 +19,7 @@ class Drive
         $client->setApplicationName($applicationName);
         $client->setRedirectUri($redirectUri);
 
-        $client->setScopes(Google_Service_Drive::DRIVE);
+        $client->setScopes([Google_Service_Drive::DRIVE, Google_Service_Drive::DRIVE_FILE, Google_Service_Drive::DRIVE_METADATA]);
         $client->setAuthConfig($credentialPath);
         $client->setAccessType('offline');
         $client->setPrompt('select_account consent');
